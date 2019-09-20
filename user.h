@@ -7,7 +7,10 @@ int exit(void) __attribute__((noreturn));
 int wait(void);
 int pipe(int*);
 int write(int, void*, int);
+
+//returns the number of bytes read.
 int read(int, void*, int);
+
 int close(int);
 int kill(int);
 int exec(char*, char**);
@@ -31,9 +34,12 @@ void *memmove(void*, void*, int);
 char* strchr(const char*, char c);
 int strcmp(const char*, const char*);
 void printf(int, char*, ...);
+void test(int, char*, ...);
 char* gets(char*, int max);
 uint strlen(char*);
 void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+
+
