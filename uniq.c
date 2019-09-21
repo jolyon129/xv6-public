@@ -3,71 +3,50 @@
 
 #define MAX_BUF 1024
 #define NULL (void *)0
+#define DEFAULT 0
 
 char buf[MAX_BUF];
 
-char *getline(char *lineptr, int max, int fd) {
-    int i, n;
-    char *dst = lineptr;
-    int stop = 0;
-    while ((n = read(fd, buf, 1) > 0) && stop != 1) {
-        for (i = 0; i < n; i++) {
-            if (buf[i] == '\n') {
-                *lineptr = buf[i];
+int get_line(char *line_ptr, int max, int fd) {
+    memset(line_ptr, DEFAULT, MAX_BUF);
+    char *dst = line_ptr;
+    while ((read(fd, buf, 1) > 0)) {
+        if (buf[0] == '\n') {
+            *dst++ = buf[0];
+            break;
+        } else {
+            *dst++ = buf[0];
+            if ((dst - line_ptr) + 1 > max) {
                 break;
-            } else {
-                *lineptr++ = buf[i];
-                if ((lineptr - dst)+1>max){
-                    stop = 1;
-                    break;
-                }
-
             }
         }
+
     }
-    return dst;
+    return dst - line_ptr;
 }
 
 
 void uniq(int fd, char *name) {
-    int i, n;
-    int start_i;
-    int line_len;
-//    int cur_line_is_end;
-//    int resume_line = 0;
     char *prev = NULL, *cur = NULL;
-    char *tmp = NULL;
-    while ((n = read(fd, buf, sizeof(buf))) > 0) {
-        start_i = 0;
-        i = 0;
-        for (; i < n; i++) {
-            if (buf[i] == '\n') {
-                line_len = i - start_i + 1;
-                tmp = &buf[start_i];
-                if (!prev) {
-                    prev = (char *) malloc(MAX_BUF * sizeof(char));
-                    cur = (char *) malloc(MAX_BUF * sizeof(char));
-                    memmove(prev, tmp, line_len * sizeof(char));
-                    memmove(cur, tmp, line_len * sizeof(char));
-                    printf(1, prev);
-                } else {
-                    cur = (char *) malloc(MAX_BUF * sizeof(char));
-                    memmove(cur, tmp, line_len * sizeof(char));
-                    if (strcmp(prev, cur) != 0) {
-                        printf(1, cur);
-                    }
-                }
-                memmove(prev, cur, line_len * sizeof(char));
-                free(cur);
-                // Point to the next i
-                start_i = i + 1;
+    char *line_ptr = (char *) malloc(MAX_BUF * sizeof(char));
+    while ((get_line(line_ptr, MAX_BUF, fd)) > 0) {
+        if (prev == NULL) {
+            prev = (char *) malloc(MAX_BUF * sizeof(char));
+            cur = (char *) malloc(MAX_BUF * sizeof(char));
+            memmove(prev, line_ptr, MAX_BUF);
+            memmove(cur, line_ptr, MAX_BUF);
+            printf(1, cur);
+        } else {
+            memmove(cur, line_ptr, MAX_BUF);
+            if (strcmp(cur, prev) != 0) {
+                printf(1, cur);
             }
         }
-
-
+        memmove(prev, cur, MAX_BUF);
     }
     free(prev);
     free(cur);
+    free(line_ptr);
 }
 
 
@@ -83,6 +62,8 @@ int main(int argc, char *argv[]) {
         }
         uniq(fd, argv[1]);
         exit();
+    } else if(argc == 3){
+
     }
     exit();
 }
